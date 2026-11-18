@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Europa no Inverno &amp; Natal 2026 — Nosso Roteiro Interativo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <style>
+    :root {
+      --cream: #FAF8F5;
+      --cream-dark: #F1ECE3;
+      --forest: #1B4332;
+      --forest-deep: #102A20;
+      --navy: #14213D;
+      --gold: #D4A373;
+      --gold-bright: #E5B94C;
+      --text: #1F2937;
+      --muted: #6B7280;
+      --border: #E5DFD5;
+      --card: #FFFFFF;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    h1, h2, h3, .serif { font-family: 'Playfair Display', Georgia, serif; }
+
+    /* Hero Header */
+    .hero {
+      background: linear-gradient(135deg, var(--forest-deep) 0%, var(--forest) 55%, #1E3A2F 100%);
+      color: #FFFDF9;
+      padding: 28px 20px 24px;
+      border-bottom: 3px solid var(--gold);
+    }
+    .hero-inner { max-width: 1280px; margin: 0 auto; }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(212, 163, 115, 0.2);
+      border: 1px solid rgba(212, 163, 115, 0.5);
+      color: #F6D89C;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+    .hero h1 {
+      font-size: clamp(26px, 4vw, 40px);
+      line-height: 1.15;
+      margin-bottom: 6px;
+      letter-spacing: -0.01em;
+    }
+    .hero-sub {
+      font-size: 14px;
+      color: rgba(255,253,249,0.85);
+      margin-bottom: 18px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 720px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .stat-card {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 14px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .stat-icon {
+      width: 34px; height: 34px;
+      border-radius: 10px;
+      background: rgba(212,163,115,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .stat-title { font-size: 13px; font-weight: 700; color: #FFF; }
+    .stat-desc { font-size: 11px; color: rgba(255,255,255,0.72); }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .btn-gold {
+      flex: 1;
+      min-width: 240px;
+      background: linear-gradient(135deg, #E2B44B 0%, #CFA03B 100%);
+      color: #14213D;
+      border: none;
+      border-radius: 14px;
+      padding: 13px 18px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.22);
+      transition: transform 0.15s;
+    }
+    .btn-gold:hover { transform: translateY(-1px); }
+    .badge-count {
+      background: var(--navy);
+      color: #FFF;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    .btn-outline-light {
+      background: rgba(255,255,255,0.1);
+      color: #FFF;
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-outline-light:hover { background: rgba(255,255,255,0.18); }
+
+    /* Sticky Phase & Day Nav */
+    .nav-bar {
+      position: sticky;
+      top: 0;
+      z-index: 900;
+      background: rgba(250, 248, 245, 0.96);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+    }
+    .nav-inner { max-width: 1280px; margin: 0 auto; }
+    .pills-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      scrollbar-width: none;
+    }
+    .pills-row::-webkit-scrollbar { display: none; }
+    .pill {
+      white-space: nowrap;
+      border: 1px solid var(--border);
+      background: #FFF;
+      color: var(--text);
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .pill:hover { border-color: var(--navy); }
+    .pill.active {
+      background: var(--navy);
+      color: #FFF;
+      border-color: var(--navy);
+      box-shadow: 0 2px 8px rgba(20,33,61,0.2);
+    }
+    .day-pills-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-top: 4px;
+      scrollbar-width: none;
+    }
+    .day-pills-row::-webkit-scrollbar { display: none; }
+    .day-pill {
+      white-space: nowrap;
+      border: 1px solid var(--border);
+      background: var(--cream-dark);
+      color: var(--text);
+      padding: 5px 11px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .day-pill.active {
+      background: var(--forest);
+      color: #FFF;
+      border-color: var(--forest);
+    }
+
+    /* Main Split Layout */
+    .main-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 18px 16px 48px;
+      display: grid;
+      grid-template-columns: 1.08fr 0.92fr;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 960px) {
+      .main-container { grid-template-columns: 1fr; }
+    }
+
+    /* Map Panel */
+    .map-panel {
+      position: sticky;
+      top: 104px;
+      background: #FFF;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(20,33,61,0.06);
+    }
+    @media (max-width: 960px) {
+      .map-panel { position: relative; top: 0; order: -1; }
+    }
+    .map-header {
+      padding: 12px 14px;
+      background: var(--navy);
+      color: #FFF;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .map-header-title { font-size: 13.5px; font-weight: 700; }
+    .map-tools { display: flex; flex-wrap: wrap; gap: 6px; }
+    .map-btn {
+      background: rgba(255,255,255,0.14);
+      color: #FFF;
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 8px;
+      padding: 5px 9px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .map-btn:hover { background: rgba(255,255,255,0.25); }
+    .map-btn.gold { background: var(--gold-bright); color: var(--navy); border-color: var(--gold-bright); }
+    #map { width: 100%; height: 460px; z-index: 1; }
+    @media (max-width: 960px) { #map { height: 340px; } }
+    .map-footer {
+      padding: 10px 14px;
+      background: var(--cream-dark);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    /* Day Card & Logic Box */
+    .day-banner {
+      background: linear-gradient(135deg, var(--navy) 0%, #1F325C 100%);
+      color: #FFF;
+      border-radius: 18px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 6px 20px rgba(20,33,61,0.12);
+    }
+    .day-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .date-chip {
+      background: var(--gold-bright);
+      color: var(--navy);
+      font-weight: 800;
+      font-size: 13px;
+      padding: 3px 10px;
+      border-radius: 8px;
+    }
+    .meta-pill {
+      background: rgba(255,255,255,0.12);
+      font-size: 11.5px;
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+    .day-banner h2 { font-size: 23px; line-height: 1.25; margin-bottom: 4px; }
+    .day-city { font-size: 13px; color: #F6D89C; font-weight: 600; }
+
+    .logic-card {
+      background: #FFFDF8;
+      border: 1px solid #E6D5B8;
+      border-left: 4px solid var(--gold-bright);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+    }
+    .logic-title {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #8A5A19;
+      margin-bottom: 4px;
+    }
+    .logic-text { font-size: 13.5px; color: #374151; }
+
+    /* Attraction Cards */
+    .places-list { display: flex; flex-direction: column; gap: 12px; }
+    .place-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 15px 16px;
+      cursor: pointer;
+      transition: all 0.18s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    .place-card:hover {
+      border-color: var(--gold);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(20,33,61,0.08);
+    }
+    .place-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .place-num-title { display: flex; align-items: center; gap: 10px; }
+    .num-badge {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--navy);
+      color: #FFF;
+      font-weight: 700;
+      font-size: 13px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .place-time { font-size: 11.5px; font-weight: 700; color: var(--forest); }
+    .place-name { font-size: 16px; font-weight: 700; color: var(--navy); }
+    .tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .tag-reserve { background: #FEF3C7; color: #92400E; border: 1px solid #F59E0B; }
+    .tag-free { background: #DCFCE7; color: #166534; }
+    .tag-food { background: #FCE7F3; color: #9D174D; }
+    .tag-walkin { background: #E0F2FE; color: #075985; }
+    .tag-info { background: #F3F4F6; color: #374151; }
+
+    .place-short { font-size: 13.5px; color: #4B5563; margin-bottom: 10px; }
+    .place-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      border-top: 1px dashed var(--border);
+      padding-top: 10px;
+    }
+    .act-btn {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--cream);
+      color: var(--navy);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .act-btn:hover { background: var(--cream-dark); }
+    .act-btn.primary { background: var(--forest); color: #FFF; border-color: var(--forest); }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-box {
+      background: #FFF;
+      border-radius: 20px;
+      max-width: 580px;
+      width: 100%;
+      max-height: 88vh;
+      overflow-y: auto;
+      padding: 22px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    .modal-close {
+      position: absolute; top: 16px; right: 16px;
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--cream);
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .modal-section {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-top: 10px;
+    }
+    .modal-section h4 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--forest);
+      margin-bottom: 4px;
+    }
+    .modal-section p { font-size: 13.5px; color: #374151; }
+    .modal-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Checklist Modal */
+    .check-group { margin-top: 14px; }
+    .check-group h3 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border);
+    }
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: var(--cream);
+      margin-bottom: 6px;
+      cursor: pointer;
+    }
+    .check-item input { margin-top: 4px; width: 16px; height: 16px; accent-color: var(--forest); }
+    .check-item.done .check-title { text-decoration: line-through; color: var(--muted); }
+    .check-title { font-size: 13px; font-weight: 700; color: var(--text); }
+    .check-note { font-size: 12px; color: var(--muted); }
+
+    /* Custom Marker */
+    .custom-pin {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: #14213D;
+      color: #FFF;
+      border: 2.5px solid #E5B94C;
+      font-weight: 800;
+      font-size: 13px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge">✨ Guia Interativo • 09 a 29 de Dezembro de 2026</div>
+      <h1>Europa no Inverno &amp; Natal 2026</h1>
+      <p class="hero-sub">Itália (Milão &amp; Turim), Londres Natalina, Paris &amp; Disneyland, Rota dos Vinhos da Alsácia e Alpes Franceses</p>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">📅</div>
+          <div><div class="stat-title">21 Dias</div><div class="stat-desc">09 a 29 de Dezembro</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🌍</div>
+          <div><div class="stat-title">3 Países</div><div class="stat-desc">Itália • Reino Unido • França</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🏙️</div>
+          <div><div class="stat-title">12+ Destinos</div><div class="stat-desc">Capitais, Vilas &amp; Estações</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🎄</div>
+          <div><div class="stat-title">Natal &amp; Alpes</div><div class="stat-desc">Feiras, Pubs &amp; Neve</div></div>
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        <button class="btn-gold" onclick="openChecklist()">
+          ✨ Ver O Que Precisa Reservar <span class="badge-count" id="reserveCountBadge">23</span>
+        </button>
+        <button class="btn-outline-light" onclick="openDay('ALL')">
+          🗺️ Mapa Geral da Viagem
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="nav-bar">
+    <div class="nav-inner">
+      <div class="pills-row" id="phasePills">
+        <button class="pill active" data-phase="all" onclick="filterPhase('all')">Todas as Fases (21 dias)</button>
+        <button class="pill" data-phase="it" onclick="filterPhase('it')">🇮🇹 Milão &amp; Turim (09–13/12)</button>
+        <button class="pill" data-phase="uk" onclick="filterPhase('uk')">🇬🇧 Londres Natalina (13–17/12)</button>
+        <button class="pill" data-phase="fr" onclick="filterPhase('fr')">🇫🇷 Paris &amp; Disney (17–21/12)</button>
+        <button class="pill" data-phase="road" onclick="filterPhase('road')">🚗 Road Trip Alsácia &amp; Alpes (22–26/12)</button>
+        <button class="pill" data-phase="end" onclick="filterPhase('end')">🇮🇹 Retorno Turim &amp; Voo (27–29/12)</button>
+      </div>
+      <div class="day-pills-row" id="dayPills"></div>
+    </div>
+  </nav>
+
+  <main class="main-container">
+    <section id="itineraryContent"></section>
+
+    <aside class="map-panel">
+      <div class="map-header">
+        <span class="map-header-title" id="mapHeaderTitle">🗺️ Mapa Interativo do Dia</span>
+        <div class="map-tools">
+          <button class="map-btn" onclick="setMapLayer('m')">Padrão</button>
+          <button class="map-btn" onclick="setMapLayer('y')">Satélite</button>
+          <button class="map-btn" onclick="setMapLayer('p')">Relevo</button>
+        </div>
+      </div>
+      <div id="map"></div>
+      <div class="map-footer">
+        <span id="mapHint">Toque nos pinos numerados para detalhes</span>
+        <a id="fullRouteBtn" class="map-btn gold" href="#" target="_blank" rel="noopener">
+          🧭 Rota Completa no Google Maps
+        </a>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Modal Detalhes da Atração -->
+  <div class="modal-backdrop" id="placeModal" onclick="if(event.target===this) closePlaceModal()">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closePlaceModal()">×</button>
+      <div id="placeModalBody"></div>
+    </div>
+  </div>
+
+  <!-- Modal Checklist de Reservas -->
+  <div class="modal-backdrop" id="checklistModal" onclick="if(event.target===this) closeChecklist()">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeChecklist()">×</button>
+      <h2 class="serif" style="font-size:24px; color:var(--navy); margin-bottom:4px;">Checklist de Reservas &amp; Compras</h2>
+      <p style="font-size:13px; color:var(--muted);">Apenas o que exige hora marcada, esgota ou encarece perto da data. Marque conforme for fechando (salvo no seu aparelho):</p>
+      <div id="checklistBody"></div>
+    </div>
+  </div>
+
+  <script>
+    const DAYS = [
+      {
+        "id": "d09",
+        "date": "09/12",
+        "weekday": "Quarta-feira",
+        "phase": "it",
+        "phaseLabel": "🇮🇹 Itália: Milão & Turim",
+        "city": "Milão ➔ Turim",
+        "base": "Pernoite em Turim (Casa)",
+        "sunset": "16h42",
+        "title": "Chegada em Milão, Duomo Iluminado & Navigli",
+        "logic": "Como vocês chegam às 09h00 apenas com bagagem de mão, deixamos as malas no guarda-volumes da Milano Centrale e fazemos um circuito linear pelo centro histórico (Duomo ➔ Galleria ➔ Quadrilatero ➔ Castelo) antes de pegar o metrô direto para o aperitivo de Natal nos canais de Navigli e embarcar no trem rápido de 50 min para Turim.",
+        "cluster": {"lat": 45.4655, "lng": 9.188, "radius": 1800, "color": "#2563eb"},
+        "travelMode": "walking",
+        "places": [
+          {"num": 1, "time": "09h00 – 10h30", "name": "Aeroporto Malpensa ➔ Milano Centrale", "tag": "Transição • Trem Express", "tagType": "info", "lat": 45.4859, "lng": 9.2041, "short": "Trem Malpensa Express (51 min) + guarda-volumes KiPoint na Centrale.", "about": "A estação monumental Milano Centrale é o ponto de chegada do trem vindo do aeroporto e onde vocês deixarão as malas de mão no guarda-volumes KiPoint (piso térreo) para passear livres por Milão.", "ticket": "Malpensa Express: € 13/pessoa (comprar na hora ou app Trenord). Guarda-volumes: ~€ 6–10 por mala.", "hours": "Trens a cada 15–30 min. Guarda-volumes aberto das 07h00 às 23h00.", "tip": "Como estarão só com mala de mão, passem direto pela esteira de bagagens em Malpensa e sigam as placas 'Treni / Trains'."},
+          {"num": 2, "time": "11h30 – 13h00", "name": "Duomo di Milano & Mercatino di Natale", "tag": "Reservar Antes", "tagType": "reserve", "lat": 45.4641, "lng": 9.1919, "short": "Subida aos terraços góticos + feira de Natal na Piazza del Duomo.", "about": "A catedral gótica símbolo de Milão ganha uma árvore gigante e dezenas de chalés de madeira do Mercatino di Natale logo na praça frontal. Caminhar entre os pináculos nos terraços oferece vista panorâmica da cidade.", "ticket": "Pass Lift (Catedral + Terraços de elevador): ~€ 22/pessoa. Comprar com hora marcada em duomomilano.it.", "hours": "09h00 às 19h00 (última subida 18h10). Feira de Natal das 08h30 às 22h00.", "tip": "Reservem o horário das 11h45/12h00 para garantir entrada sem fila no único dia em Milão."},
+          {"num": 3, "time": "13h00 – 14h30", "name": "Galleria Vittorio Emanuele II & Luini", "tag": "Walk-in • Comida Típica", "tagType": "walkin", "lat": 45.4658, "lng": 9.19, "short": "Cúpula iluminada com árvore Swarovski + panzerotto tradicional no Luini.", "about": "A galeria comercial mais elegante da Itália recebe uma instalação natalina espetacular sob sua cúpula de vidro. A dois passos dali, o histórico forno Luini (desde 1888) serve o autêntico panzerotto frito milanês.", "ticket": "Entrada gratuita na Galleria. Panzerotto no Luini: ~€ 3,50 a € 4,50.", "hours": "Luini aberto de seg. a sáb. das 10h00 às 20h00.", "tip": "Peçam o panzerotto clássico de mussarela e tomate na fila rápida da calçada e comam caminhando até a Piazza della Scala."},
+          {"num": 4, "time": "14h45 – 17h15", "name": "Quadrilatero della Moda & Castello Sforzesco", "tag": "Gratuito • Luzes", "tagType": "free", "lat": 45.4705, "lng": 9.1793, "short": "Vitrines iluminadas da Via Montenapoleone e pôr do sol no Castelo.", "about": "Caminhada pelas ruas mais sofisticadas de Milão (Via Montenapoleone e Via della Spiga), onde as grifes instalam decorações aéreas de Natal, seguindo até o imponente Castello Sforzesco e o Parco Sempione.", "ticket": "Acesso gratuito aos pátios do Castello Sforzesco e ao Parco Sempione.", "hours": "Pátios do Castelo abertos das 07h00 às 19h30.", "tip": "O sol se põe às 16h42 — aproveitem o fim de tarde no Castelo antes de descer para os canais."},
+          {"num": 5, "time": "18h00 – 20h15", "name": "Canais de Navigli (Aperitivo de Natal)", "tag": "Comida & Bebida Típica", "tagType": "food", "lat": 45.4519, "lng": 9.1753, "short": "Canais cobertos por arcos de luzes refletindo na água + Aperitivo Milanese.", "about": "O antigo bairro dos canais projetados por Leonardo da Vinci transforma-se no cenário mais romântico de Milão no Natal, com pontes iluminadas e bares animados servindo o clássico Aperitivo (drink + tábua de petiscos).", "ticket": "Aperitivo (Spritz ou Negroni + petiscos): ~€ 12 a € 16 por pessoa.", "hours": "Melhor horário entre 18h00 e 20h30.", "tip": "Metrô Linha Verde (M2) até Porta Genova. Boas pedidas: Mag Café ou Rita & Cocktails."},
+          {"num": 6, "time": "21h00 – 21h50", "name": "Trem Rápido Milão ➔ Torino Porta Susa", "tag": "Comprar Antes", "tagType": "reserve", "lat": 45.0725, "lng": 7.6656, "short": "Frecciarossa ou Italo (50 min) direto para a base em Turim.", "about": "Conexão ferroviária de alta velocidade ligando o centro de Milão a Turim em menos de 1 hora, muito mais confortável e rápida que ônibus após o voo internacional.", "ticket": "A partir de € 9,90–€ 15/pessoa comprando antecipado na Trenitalia ou Italo.", "hours": "Trens até por volta das 22h00.", "tip": "Retirem as malas no KiPoint da Centrale 25 min antes do horário do trem."}
+        ]
+      },
+      {
+        "id": "d10",
+        "date": "10/12",
+        "weekday": "Quinta-feira",
+        "phase": "it",
+        "phaseLabel": "🇮🇹 Itália: Milão & Turim",
+        "city": "Turim",
+        "base": "Turim (Casa da Namorada)",
+        "sunset": "16h48",
+        "title": "Turim Real, Galerias Históricas & Luci d'Artista",
+        "logic": "Primeiro dia inteiro em Turim dedicado ao eixo real e barroco, todo percorrido a pé sob as famosas arcadas cobertas da cidade (ótimas caso faça frio) e encerrando com o festival artístico de luzes natalinas Luci d'Artista.",
+        "cluster": {"lat": 45.0695, "lng": 7.6865, "radius": 1300, "color": "#2563eb"},
+        "travelMode": "walking",
+        "places": [
+          {"num": 1, "time": "10h00 – 12h30", "name": "Piazza Castello, Palazzo Reale & Cappella della Sindone", "tag": "Cultura • Centro Real", "tagType": "info", "lat": 45.071, "lng": 7.6858, "short": "Coração histórico de Turim, palácio da família Saboia e feira de Natal.", "about": "A praça central abriga o Palazzo Reale (residência da monarquia italiana), a cúpula barroca da Capela do Santo Sudário e chalés de artesanato natalino.", "ticket": "Musei Reali: ~€ 15/pessoa (pode comprar na hora em dias de semana de dezembro).", "hours": "Terça a domingo, das 09h00 às 19h00.", "tip": "Não deixem de reparar na fachada medieval do Palazzo Madama bem no centro da praça."},
+          {"num": 2, "time": "12h45 – 14h30", "name": "Piazza Solferino & Galerias Históricas", "tag": "Natal • Gratuito", "tagType": "free", "lat": 45.0688, "lng": 7.6789, "short": "Pista de patinação no gelo, Calendário do Advento e Galleria Subalpina.", "about": "Na Piazza Solferino fica instalada a pista de gelo de inverno e o Calendário do Advento gigante que abre uma janela por dia. Depois, percorram as elegantes Galleria Subalpina e Galleria San Federico.", "ticket": "Acesso gratuito às praças e galerias.", "hours": "Lojas e cafés abertos das 09h30 às 19h30.", "tip": "A Galleria Subalpina é uma das mais fotogênicas da Itália, cheia de cafés históricos."},
+          {"num": 3, "time": "18h30 – 21h00", "name": "Via Po & Piazza Vittorio Veneto (Luci d'Artista)", "tag": "Luzes de Natal", "tagType": "free", "lat": 45.065, "lng": 7.6952, "short": "Instalações luminosas de artistas contemporâneos até a beira do Rio Pó.", "about": "Durante o Natal, Turim transforma suas avenidas em uma galeria a céu aberto com o festival Luci d'Artista. Caminhem sob as arcadas da Via Po até a monumental Piazza Vittorio Veneto.", "ticket": "Gratuito.", "hours": "Luzes acesas a partir das 16h45 até a madrugada.", "tip": "Ótima região para tomar um vermute artesanal (Turim é o berço do vermute!) antes do jantar."}
+        ]
+      },
+      {
+        "id": "d11",
+        "date": "11/12",
+        "weekday": "Sexta-feira",
+        "phase": "it",
+        "phaseLabel": "🇮🇹 Itália: Milão & Turim",
+        "city": "Turim",
+        "base": "Turim (Casa da Namorada)",
+        "sunset": "16h48",
+        "title": "Museo Egizio, Bicerin Original & Pôr do Sol na Mole",
+        "logic": "Concentramos as duas visitas que exigem hora marcada em Turim na sexta-feira (evitando o pico de fim de semana): o Museo Egizio logo na abertura (09h00) e a Mole Antonelliana às 15h45 para pegar o pôr do sol sobre os Alpes nevados.",
+        "cluster": {"lat": 45.0688, "lng": 7.6875, "radius": 1100, "color": "#2563eb"},
+        "travelMode": "walking",
+        "places": [
+          {"num": 1, "time": "09h00 – 12h00", "name": "Museo Egizio (Museu Egípcio de Turim)", "tag": "Reserva Obrigatória", "tagType": "reserve", "lat": 45.0684, "lng": 7.6843, "short": "Segundo maior acervo egípcio do mundo, atrás apenas do Cairo.", "about": "Com estátuas monumentais, tumbas intactas, papiros e múmias em uma expografia moderna e dramática, é uma das atrações culturais mais impressionantes de toda a Itália.", "ticket": "€ 18/pessoa. Reserva obrigatória com hora marcada em museoegizio.it.", "hours": "Sexta-feira das 09h00 às 18h30.", "tip": "Entrar às 09h00 garante salas tranquilas antes das excursões escolares."},
+          {"num": 2, "time": "12h30 – 15h00", "name": "Piazza San Carlo & Caffè Al Bicerin", "tag": "Bebida Típica • Walk-in", "tagType": "food", "lat": 45.0678, "lng": 7.6826, "short": "A 'sala de estar de Turim' e a cafeteria de 1763 onde nasceu o Bicerin.", "about": "Caminhada pela elegante Piazza San Carlo seguida de parada no histórico Caffè Al Bicerin (Piazza della Consolata) para provar a bebida oficial da cidade: camadas quentes de café expresso, chocolate amargo e creme de leite batido.", "ticket": "Bicerin tradicional: ~€ 7,00.", "hours": "08h30 às 19h30 (não aceita reserva, fila rápida na porta).", "tip": "Regra da casa: nunca misture o Bicerin com colher — beba direto para sentir as temperaturas e texturas em camadas."},
+          {"num": 3, "time": "15h45 – 17h30", "name": "Mole Antonelliana & Elevador Panorâmico", "tag": "Reserva Obrigatória", "tagType": "reserve", "lat": 45.0691, "lng": 7.6932, "short": "Símbolo de Turim com elevador de vidro até 85m de altura no pôr do sol.", "about": "O edifício icônico abriga o Museu Nacional do Cinema e um elevador panorâmico transparente que sobe pelo meio da cúpula até um mirante 360° cercado pela cordilheira dos Alpes.", "ticket": "Combo Museu + Elevador: ~€ 20/pessoa. Comprar antecipado em museocinema.it.", "hours": "Sexta das 09h00 às 19h00.", "tip": "Agendem o elevador para ~15h45/16h00 para ver a cidade de dia e acendendo às 16h48."},
+          {"num": 4, "time": "20h00 – 22h00", "name": "Quadrilatero Romano (Jantar Piemontês)", "tag": "Reservar • [A DEFINIR]", "tagType": "food", "lat": 45.0744, "lng": 7.6805, "short": "Bairro medieval com trattorias tradicionais (agnolotti del plin e Barolo).", "about": "As ruelas de pedra do antigo acampamento romano concentram os restaurantes mais autênticos da culinária piemontesa, famosa pelas massas recheadas artesanais, trufas e vinhos tintos encorpados.", "ticket": "Jantar completo com vinho: ~€ 30–45/pessoa.", "hours": "Jantar a partir das 19h30.", "tip": "Sugestão top para reservar: Ristorante Tre Galline (um dos mais antigos de Turim)."}
+        ]
+      },
+      {
+        "id": "d12",
+        "date": "12/12",
+        "weekday": "Sábado",
+        "phase": "it",
+        "phaseLabel": "🇮🇹 Itália: Milão & Turim",
+        "city": "Turim",
+        "base": "Turim (Casa da Namorada)",
+        "sunset": "16h48",
+        "title": "Feira de Porta Palazzo, Mirante dos Alpes & Natale è Reale",
+        "logic": "Sábado é o dia mais vibrante da feira ao ar livre de Porta Palazzo. À tarde, subimos ao mirante do Monte dei Cappuccini e aproveitamos o evento Natale è Reale na Palazzina di Caccia di Stupinigi, que abre exclusivamente nos fins de semana.",
+        "cluster": {"lat": 45.067, "lng": 7.689, "radius": 2200, "color": "#2563eb"},
+        "travelMode": "walking",
+        "places": [
+          {"num": 1, "time": "09h30 – 12h30", "name": "Mercato di Porta Palazzo & Mercato Centrale", "tag": "Comida Típica • Sábado", "tagType": "food", "lat": 45.0758, "lng": 7.6836, "short": "Maior mercado ao ar livre da Europa + pavilhão gastronômico coberto.", "about": "No sábado pela manhã, a Piazza della Repubblica ganha centenas de bancas de produtores do Piemonte. Ao lado, o Mercato Centrale reúne mestres artesãos de massas frescas, queijos, trufas e vinhos.", "ticket": "Entrada gratuita. Almoço no Mercato Centrale: ~€ 12–20/pessoa.", "hours": "Feira sábado até 14h00; Mercato Centrale das 08h00 às 00h00.", "tip": "Excelente lugar para almoçar bem e experimentar vários pratos típicos sem precisar de reserva."},
+          {"num": 2, "time": "13h30 – 15h00", "name": "Monte dei Cappuccini (Mirante Clássico)", "tag": "Gratuito • Vista Alpes", "tagType": "free", "lat": 45.0596, "lng": 7.6974, "short": "A foto mais icônica de Turim: a Mole Antonelliana com os Alpes ao fundo.", "about": "Pequena colina logo após atravessar o Rio Pó pela ponte da Piazza Vittorio Veneto, oferecendo um terraço gratuito com enquadramento perfeito da cidade.", "ticket": "Gratuito.", "hours": "Aberto 24h.", "tip": "Subida curta a pé de 10 minutos a partir do Rio Pó."},
+          {"num": 3, "time": "15h30 – 19h30", "name": "Palazzina di Caccia di Stupinigi (Natale è Reale)", "tag": "Evento de Natal", "tagType": "info", "lat": 44.9961, "lng": 7.6042, "short": "Palácio real UNESCO com mercado de Natal, presépios e salões decorados.", "about": "Antigo pavilhão de caça real da família Saboia nos arredores de Turim que recebe o evento natalino Natale è Reale apenas nos fins de semana de dezembro.", "ticket": "Ingresso evento + palácio: ~€ 12–15/pessoa.", "hours": "Sábado, 12/12, das 10h00 às 19h30.", "tip": "Caso prefiram ficar no centro, a alternativa é passear pelo Parco del Valentino e jantar em San Salvario."}
+        ]
+      },
+      {
+        "id": "d13",
+        "date": "13/12",
+        "weekday": "Domingo",
+        "phase": "uk",
+        "phaseLabel": "🇬🇧 Londres Natalina",
+        "city": "Turim ➔ Londres",
+        "base": "ibis London Shepherds Bush",
+        "sunset": "15h51",
+        "title": "Voo para Londres + Eixo Clássico das Luzes de Natal",
+        "logic": "Pousamos em Stansted às 14h10 já com o Stansted Express comprado antecipado. Como em dezembro escurece às 15h51 em Londres, às 17h00 iniciamos uma caminhada em linha reta contínua pelas ruas mais iluminadas do mundo (Covent Garden ➔ Leicester ➔ Trafalgar ➔ Regent St ➔ Carnaby St ➔ Oxford St).",
+        "cluster": {"lat": 51.5115, "lng": -0.1325, "radius": 1400, "color": "#dc2626"},
+        "travelMode": "walking",
+        "places": [
+          {"num": 1, "time": "11h00 – 14h10", "name": "Voo Ryanair FR467 (Turim ➔ Londres Stansted)", "tag": "Confirmado • D9RMHH", "tagType": "info", "lat": 51.886, "lng": 0.2389, "short": "Decolagem 13h10 de Turim (TRN) e pouso às 14h10 em Stansted (STN).", "about": "Cheguem ao aeroporto de Turim às 11h00 para passar pelo controle de passaporte de saída da Zona Schengen. Em Stansted, peguem o trem Stansted Express (47 min) até Liverpool Street + metrô Central Line até Shepherd's Bush.", "ticket": "Stansted Express: comprar tarifa Advance online antes (~£ 9,90–£ 14,50 vs £ 23+ na hora).", "hours": "Trens a cada 15 min.", "tip": "Em Londres não precisa comprar cartão de metrô: encoste o cartão/celular por aproximação (Contactless) na catraca."},
+          {"num": 2, "time": "17h00 – 18h00", "name": "Covent Garden (Árvore Gigante & Sinos Dourados)", "tag": "Gratuito • Luzes", "tagType": "free", "lat": 51.5117, "lng": -0.124, "short": "Mercado histórico coberto com decoração monumental e artistas de rua.", "about": "Ponto de partida perfeito para o Natal londrino: uma árvore de mais de 18 metros na praça externa e dezenas de sinos dourados e bolas espelhadas suspensos sob o teto de vidro do Apple Market.", "ticket": "Gratuito.", "hours": "Luzes acesas o dia todo; lojas até 20h00.", "tip": "Se bater fome rápida, o Seven Dials Market fica a 4 min dali."},
+          {"num": 3, "time": "18h00 – 19h00", "name": "Leicester Square & Trafalgar Square", "tag": "Feiras de Natal", "tagType": "free", "lat": 51.5104, "lng": -0.1301, "short": "Chalés tradicionais de madeira, mulled wine e a árvore norueguesa.", "about": "Duas praças icônicas a 5 minutos a pé uma da outra, repletas de barracas natalinas vendendo vinho quente com especiarias (mulled wine), chocolates e artesanato.", "ticket": "Entrada gratuita nas feiras.", "hours": "10h00 às 22h00.", "tip": "Na Trafalgar Square fica a famosa árvore doada todos os anos pela Noruega desde 1947."},
+          {"num": 4, "time": "19h00 – 20h30", "name": "Piccadilly Circus, Regent St, Carnaby St & Oxford St", "tag": "Gratuito • Imperdível", "tagType": "free", "lat": 51.5101, "lng": -0.1342, "short": "Os anjos luminosos da Regent Street, Carnaby temática e estrelas da Oxford.", "about": "Caminhada contínua passando pelos telões de Piccadilly Circus, subindo sob os anjos dourados suspensos da Regent Street, entrando na colorida Carnaby Street e terminando sob as estrelas da Oxford Street.", "ticket": "Gratuito.", "hours": "Luzes acesas das 16h00 à meia-noite.", "tip": "Ao final, peguem a Central Line na estação Oxford Circus direto de volta para Shepherd's Bush."}
+        ]
+      },
+      {
+        "id": "d14",
+        "date": "14/12",
+        "weekday": "Segunda-feira",
+        "phase": "uk",
+        "phaseLabel": "🇬🇧 Londres Natalina",
+        "city": "Londres",
+        "base": "ibis London Shepherds Bush",
+        "sunset": "15h51",
+        "title": "Troca da Guarda Blindada, Pub Centenário & Soho",
+        "logic": "Em dezembro, a Troca da Guarda no Buckingham Palace ocorre às segundas, quartas e sextas às 11h00. Blindamos toda a manhã de segunda-feira para chegar às 10h15 na grade sem pressa. À tarde exploramos os pubs históricos de Covent Garden/Soho e garantimos o jantar reservado no Soho para fugir das filas de 1h30.",
+        "cluster": {"lat": 51.5055, "lng": -0.134, "radius": 1600, "color": "#dc2626"},
+        "travelMode": "walking",
+        "places": [
+          {"num": 1, "time": "09h00 – 10h15", "name": "Big Ben, Parlamento & Abadia de Westminster", "tag": "Ícones • Walk-in", "tagType": "info", "lat": 51.4993, "lng": -0.1273, "short": "O cartão-postal político de Londres antes de atravessar o St. James's Park.", "about": "Saída pela estação Westminster para admirar o Big Ben, as Casas do Parlamento e a fachada gótica da Abadia de Westminster (local de coroação dos reis britânicos).", "ticket": "Fotos externas gratuitas. Visita interna à Abadia: £ 29 (só compre se fizer questão de entrar).", "hours": "Abadia abre às 09h30.", "tip": "Não entrem na Abadia esta manhã para não perder o horário de chegada na Troca da Guarda."},
+          {"num": 2, "time": "10h15 – 12h00", "name": "Buckingham Palace (Troca da Guarda)", "tag": "Gratuito • 11h00", "tagType": "free", "lat": 51.5014, "lng": -0.1419, "short": "Cerimônia completa às 11h00 com bandas militares e guarda real.", "about": "A tradicional cerimônia de troca dos guardas de túnica vermelha e chapéu de pele de urso. As bandas começam a marchar pelo The Mall por volta das 10h30.", "ticket": "Gratuito.", "hours": "Cerimônia às 11h00 (chegar às 10h15 no Victoria Memorial para ter visão limpa).", "tip": "Se chover forte e cancelarem, já deixamos a manhã de quarta-feira (16/12) flexível como Plano B."},
+          {"num": 3, "time": "14h30 – 17h00", "name": "The Lamb & Flag (Pub Histórico de 1623)", "tag": "Pub Secular • Walk-in", "tagType": "food", "lat": 51.5119, "lng": -0.1258, "short": "Beco histórico escondido em Covent Garden, pub favorito de Charles Dickens.", "about": "Fundado em 1623, mantém tetos baixos de madeira escura, lareiras e autênticas ales inglesas tiradas na bomba manual. Ótimo para provar torta britânica (meat pie) ou fish & chips.", "ticket": "Pint de cerveja: ~£ 6,50–£ 7,50. Pratos de pub: ~£ 15–£ 19.", "hours": "11h00 às 23h00 (ordem de chegada).", "tip": "Outras opções centenárias coladas no Soho: The French House e The Coach & Horses."},
+          {"num": 4, "time": "19h30 – 21h30", "name": "Jantar no Soho (Reserva Obrigatória)", "tag": "Reservar • [A DEFINIR]", "tagType": "reserve", "lat": 51.5136, "lng": -0.1365, "short": "Evite filas de 1h30 na calçada reservando mesa antecipada no Soho.", "about": "Em dezembro, o Soho lota de confraternizações de fim de ano. Ter mesa reservada transforma a noite sem espera no frio.", "ticket": "Média de £ 20 a £ 40/pessoa conforme o restaurante.", "hours": "Jantar às 19h30 (ou às 17h30 caso escolham o Dishoom).", "tip": "Opções para escolhermos: Flat Iron Soho (steak £15), Blacklock Soho, Hawksmoor ou Dishoom (reserva até 17h45)."}
+        ]
+      },
+      {
+        "id": "d15",
+        "date": "15/12",
+        "weekday": "Terça-feira",
+        "phase": "uk",
+        "phaseLabel": "🇬🇧 Londres Natalina",
+        "city": "Londres",
+        "base": "ibis London Shepherds Bush",
+        "sunset": "15h51",
+        "title": "Torre de Londres, Borough Market, Sky Garden & South Bank",
+        "logic": "Dia perfeitamente encaixado nas duas margens do Tâmisa na City of London: começamos na Tower of London na abertura (09h00), atravessamos a Tower Bridge para almoçar no Borough Market, subimos no Sky Garden às 15h00 para pegar o pôr do sol (15h51) e caminhamos pela margem sul iluminada até a London Eye.",
+        "cluster": {"lat": 51.509, "lng": -0.095, "radius": 2100, "color": "#dc2626"},
+        "travelMode": "walking",
+        "places": [
+          {"num": 1, "time": "09h00 – 11h45", "name": "Tower of London & Tower Bridge", "tag": "Reservar Antes", "tagType": "reserve", "lat": 51.5081, "lng": -0.0759, "short": "Fortaleza medieval com as Joias da Coroa + travessia da ponte mais famosa.", "about": "Construída por Guilherme, o Conquistador, em 1066, guarda as Joias da Coroa Britânica e os famosos guardas Beefeaters. Logo ao lado fica a icônica Tower Bridge.", "ticket": "Tower of London: £ 34,80/pessoa (comprar antes em hrp.org.uk se forem entrar). Travessia da ponte é gratuita.", "hours": "09h00 às 16h30.", "tip": "Entrando às 09h00, vão direto para a Jewel House ver as coroas antes de formar fila."},
+          {"num": 2, "time": "12h00 – 14h30", "name": "Borough Market & Pub The George Inn", "tag": "Comida Típica • Walk-in", "tagType": "food", "lat": 51.5055, "lng": -0.091, "short": "Mercado gastronômico histórico decorado de Natal + pub medieval ao lado.", "about": "Com mais de 1.000 anos de história, o Borough Market fica todo enfeitado para o Natal e reúne bancas incríveis (sanduíche de pato confit, raclette derretida, fish & chips, morangos com chocolate). Ao lado fica o The George Inn, único pub com galerias de madeira medievais de Londres.", "ticket": "Entrada gratuita. Almoço nas bancas: ~£ 10–£ 16.", "hours": "Terça-feira das 10h00 às 17h00.", "tip": "Depois de comer nas bancas, tomem uma pint no pátio histórico do The George Inn."},
+          {"num": 3, "time": "15h00 – 16h30", "name": "Sky Garden (ou Horizon 22) — Mirante Panorâmico", "tag": "Gratuito • Alarme 23/11", "tagType": "reserve", "lat": 51.5112, "lng": -0.0836, "short": "Jardim suspenso no 35º andar com vista 360° de Londres no pôr do sol.", "about": "O mirante gratuito mais famoso de Londres oferece terraço aberto e bares cercados por jardins tropicais bem no horário em que o sol se põe (15h51) e a cidade inteira acende.", "ticket": "Gratuito, mas exige ingresso online! Lote abre segunda 23/11 às 07h00 (Brasília) em skygarden.london (Horizon 22 abre 30/11 às 07h00).", "hours": "10h00 às 18h00.", "tip": "Coloquem alarme para 23/11 às 06h55 da manhã para garantir os 3 bilhetes gratuitos na faixa das 15h00/15h30."},
+          {"num": 4, "time": "16h45 – 20h00", "name": "St. Paul's, Ye Olde Cheshire Cheese & South Bank Market", "tag": "Pub 1667 • Luzes", "tagType": "free", "lat": 51.5067, "lng": -0.1163, "short": "Pub reconstruído em 1667, Millennium Bridge, feira no Tâmisa e London Eye.", "about": "Passagem pela Catedral de St. Paul, parada no lendário pub subterrâneo Ye Olde Cheshire Cheese (1667, frequentado por Dickens), travessia da Millennium Bridge e caminhada pela feira de Natal do Southbank Centre até a London Eye iluminada.", "ticket": "Caminhada e feira gratuitas.", "hours": "Southbank Winter Market aberto até 22h00.", "tip": "Visual incrível da cúpula da St. Paul's iluminada vista do meio da Millennium Bridge."}
+        ]
+      },
+      {
+        "id": "d16",
+        "date": "16/12",
+        "weekday": "Quarta-feira",
+        "phase": "uk",
+        "phaseLabel": "🇬🇧 Londres Natalina",
+        "city": "Londres",
+        "base": "ibis London Shepherds Bush",
+        "sunset": "15h51",
+        "title": "Museus Gratuitos, Notting Hill, Pub Todo de Natal & Harrods",
+        "logic": "Deixamos a manhã flexível (museus gratuitos sem hora marcada) como Plano B caso a Troca da Guarda tenha chovido na segunda. À tarde fazemos o eixo oeste colado no nosso hotel (Shepherd's Bush): Notting Hill ➔ The Churchill Arms às 16h30 (exatamente quando acendem as 90 árvores de Natal da fachada) ➔ Harrods iluminada.",
+        "cluster": {"lat": 51.5075, "lng": -0.185, "radius": 2400, "color": "#dc2626"},
+        "travelMode": "walking",
+        "places": [
+          {"num": 1, "time": "09h30 – 13h00", "name": "British Museum ou Natural History Museum", "tag": "Gratuito • Plano B", "tagType": "free", "lat": 51.5194, "lng": -0.127, "short": "Acervo mundial gratuito (ou 2ª chance para a Troca da Guarda às 11h00).", "about": "Escolha livre entre a Pedra de Roseta e múmias do British Museum ou a arquitetura de catedral e dinossauros do Natural History Museum (que tem pista de patinação externa).", "ticket": "Entrada gratuita.", "hours": "10h00 às 17h00.", "tip": "Se tiver chovido forte na segunda-feira, usem esta manhã para assistir à Troca da Guarda às 11h00!"},
+          {"num": 2, "time": "13h30 – 16h15", "name": "Notting Hill & Portobello Road", "tag": "Charme • Walk-in", "tagType": "free", "lat": 51.5159, "lng": -0.2054, "short": "Casas coloridas vitorianas, lojas de antiguidades e cafés charmosos.", "about": "Um dos bairros mais fotogênicos de Londres, a apenas 1 estação de metrô do hotel em Shepherd's Bush.", "ticket": "Gratuito.", "hours": "Melhor movimento à tarde.", "tip": "Caminhem pela Portobello Road, Westbourne Grove e Lancaster Road para ver as fachadas coloridas."},
+          {"num": 3, "time": "16h30 – 18h00", "name": "The Churchill Arms (O Pub Todo Decorado de Natal)", "tag": "Pub de Natal • Walk-in", "tagType": "food", "lat": 51.5069, "lng": -0.1948, "short": "Fachada inteira coberta por mais de 90 árvores de Natal iluminadas!", "about": "O pub natalino mais famoso do Reino Unido: além das dezenas de árvores e milhares de luzes na fachada, o interior é um museu vivo repleto de canecas, bandeiras e objetos de Winston Churchill.", "ticket": "Entrada gratuita (não aceita reserva em dezembro). Pint: ~£ 6,50.", "hours": "Luzes acendem ao anoitecer (~16h00).", "tip": "Chegar às 16h30 é o segredo para pegar as luzes recém-acesas e conseguir lugar antes do pico pós-trabalho."},
+          {"num": 4, "time": "18h30 – 20h30", "name": "Harrods (Knightsbridge)", "tag": "Natal • Gratuito", "tagType": "free", "lat": 51.4994, "lng": -0.1632, "short": "Fachada iluminada por milhares de lâmpadas e o andar Christmas World.", "about": "A loja de departamentos mais icônica de Londres ganha uma iluminação externa de tirar o fôlego e um andar inteiro dedicado a enfeites de Natal e o famoso Food Hall.", "ticket": "Entrada gratuita.", "hours": "10h00 às 21h00.", "tip": "Fica a 15 minutos de ônibus direto do The Churchill Arms."}
+        ]
+      },
+      {
+        "id": "d17",
+        "date": "17/12",
+        "weekday": "Quinta-feira",
+        "phase": "fr",
+        "phaseLabel": "🇫🇷 Paris & Disneyland",
+        "city": "Londres ➔ Paris",
+        "base": "ibis Paris Bastille Opéra",
+        "sunset": "16h54",
+        "title": "Eurostar para Paris, Le Marais & Eixo Iluminado Champs-Élysées",
+        "logic": "Desembarcamos de Eurostar na Gare du Nord e pegamos a Linha 5 direta (12 min) até o hotel. À tarde exploramos o bairro histórico ao lado do hotel (Place des Vosges/Marais) e às 17h00 seguimos em linha reta pela maior feira de Natal de Paris (Tuileries) até a Champs-Élysées e o Arco do Triunfo.",
+        "cluster": {"lat": 48.8635, "lng": 2.332, "radius": 2800, "color": "#16589e"},
+        "travelMode": "walking",
+        "places": [
+          {"num": 1, "time": "Manhã – 15h00", "name": "Eurostar St. Pancras ➔ Paris Gare du Nord ➔ Hotel", "tag": "Confirmado • Trem", "tagType": "info", "lat": 48.8568, "lng": 2.3712, "short": "Chegada no centro de Paris + Metrô Linha 5 direto até Bréguet-Sabin.", "about": "Cheguem 1h15 antes na estação St. Pancras em Londres para imigração. Em Paris, o ibis Bastille Opéra fica colado nas estações Bréguet-Sabin (Linha 5) e Bastille (Linhas 1, 5 e 8).", "ticket": "Eurostar já emitido. Metrô Paris: carregar Ticket t+ no app Île-de-France Mobilités.", "hours": "Viagem de 2h16 (+1h de fuso na França).", "tip": "Não comprem carnê de papel — usem o celular (Apple Wallet/Google Wallet) como passe de metrô."},
+          {"num": 2, "time": "15h30 – 16h45", "name": "Place des Vosges, Carette & Le Marais", "tag": "Walk-in • Chocolate Quente", "tagType": "food", "lat": 48.8556, "lng": 2.3655, "short": "A praça mais antiga de Paris (ao lado do hotel) e o famoso chocolate quente.", "about": "A 5 minutos a pé do hotel está a simétrica Place des Vosges, onde fica o tradicional salão Carette (famoso pelo chocolate quente espesso com chantilly) e as ruas charmosas do Marais.", "ticket": "Chocolate quente + croissant: ~€ 12–15.", "hours": "Carette aberto das 07h30 às 23h30.", "tip": "Passeio leve perfeito para entrar no clima parisiense sem precisar de transporte."},
+          {"num": 3, "time": "17h00 – 18h30", "name": "Marché de Noël des Tuileries", "tag": "Maior Feira de Natal", "tagType": "free", "lat": 48.8635, "lng": 2.3275, "short": "Mais de 80 chalés, roda-gigante, pista de gelo, vin chaud e raclette.", "about": "Instalada no Jardim das Tulherias (entre o Louvre e a Place de la Concorde), é a maior e mais animada feira de Natal de Paris, com gastronomia regional francesa e atrações iluminadas.", "ticket": "Entrada gratuita.", "hours": "11h00 às 23h45.", "tip": "Metrô Linha 1 direto de Bastille até Tuileries ou Concorde."},
+          {"num": 4, "time": "18h30 – 21h00", "name": "Champs-Élysées, Arco do Triunfo & Le Relais de l'Entrecôte", "tag": "Luzes • Jantar Clássico", "tagType": "food", "lat": 48.8698, "lng": 2.3075, "short": "Mercado de Natal na parte baixa da avenida + steak frites com molho secreto.", "about": "Caminhada sob as árvores vermelhas iluminadas da Champs-Élysées (que em 2026 volta a ter mercado de Natal até o Rond-Point) rumo ao Arco do Triunfo. Ao lado (Rue Marbeuf) fica o lendário Le Relais de l'Entrecôte.", "ticket": "Menu único (salada de nozes + entrecôte + fritas à vontade): ~€ 29/pessoa.", "hours": "Não aceita reserva — abrirá às 19h00.", "tip": "Cheguem às 18h30 na porta do Entrecôte para entrar na primeira leva sem pegar fila no frio!"}
+        ]
+      },
+      {
+        "id": "d18",
+        "date": "18/12",
+        "weekday": "Sexta-feira",
+        "phase": "fr",
+        "phaseLabel": "🇫🇷 Paris & Disneyland",
+        "city": "Paris (Marne-la-Vallée)",
+        "base": "ibis Paris Bastille Opéra",
+        "sunset": "16h54",
+        "title": "Disneyland Paris — Temporada Encantada de Natal",
+        "logic": "Dia dedicado 100% à Disneyland Paris (já comprada). Saímos às 07h45 para pegar o trem RER A na Gare de Lyon e chegar antes da abertura oficial, aproveitando as paradas natalinas, neve artificial na Main Street e o show noturno no castelo. Alerta do dia: agendar pelo celular o horário gratuito da Notre-Dame para domingo!",
+        "cluster": {"lat": 48.8674, "lng": 2.7836, "radius": 1800, "color": "#16589e"},
+        "travelMode": "transit",
+        "places": [
+          {"num": 1, "time": "09h00 – 22h00", "name": "Disneyland Paris (Disney Enchanted Christmas)", "tag": "Já Comprado • Dia Todo", "tagType": "info", "lat": 48.8674, "lng": 2.7836, "short": "Parada de Natal, árvore gigante, neve na Main Street e show noturno.", "about": "A Disneyland Paris ganha decoração natalina completa com desfile especial de Natal, iluminação da árvore na Town Square e o espetáculo noturno com drones, fogos e projeções no Castelo da Bela Adormecida.", "ticket": "Ingressos já adquiridos. Trem RER A: ~€ 5/trecho no app Île-de-France Mobilités.", "hours": "09h30 às 22h00 (chegar às 08h45 na catraca).", "tip": "Usem as filas Single Rider (Hyperspace Mountain, Big Thunder Mountain) e lembrem-se de agendar a Notre-Dame hoje no app oficial (abre 48h antes do domingo!)."}
+        ]
+      },
+      {
+        "id": "d19",
+        "date": "19/12",
+        "weekday": "Sábado",
+        "phase": "fr",
+        "phaseLabel": "🇫🇷 Paris & Disneyland",
+        "city": "Paris",
+        "base": "ibis Paris Bastille Opéra",
+        "sunset": "16h55",
+        "title": "Montmartre Cedo, Bouillon Histórico & Galeries Lafayette",
+        "logic": "Como sábado é o dia mais cheio nas lojas de Natal, subimos cedo a Montmartre (08h30) antes das excursões, descemos para o almoço clássico em um dos Bouillons mais famosos de Paris, atravessamos as passagens cobertas históricas e chegamos às Galeries Lafayette para o pôr do sol no terraço gratuito.",
+        "cluster": {"lat": 48.876, "lng": 2.338, "radius": 1700, "color": "#16589e"},
+        "travelMode": "walking",
+        "places": [
+          {"num": 1, "time": "08h30 – 11h30", "name": "Basílica de Sacré-Cœur & Place du Tertre (Montmartre)", "tag": "Gratuito • Saída Cedo", "tagType": "free", "lat": 48.8867, "lng": 2.3431, "short": "Vista panorâmica de Paris, praça dos pintores e barracas de Natal em Abbesses.", "about": "O bairro boêmio no topo da colina tem vista privilegiada de toda Paris, ruas de paralelepípedo (Rue de l'Abreuvoir) e uma pequena feira natalina artesanal na Place des Abbesses.", "ticket": "Entrada gratuita na Basílica.", "hours": "06h30 às 22h30.", "tip": "Subir às 08h30 permite tirar fotos na escadaria e na Place du Tertre quase vazias."},
+          {"num": 2, "time": "12h15 – 14h00", "name": "Almoço em Bouillon Histórico Francês", "tag": "Reservar • [A DEFINIR]", "tagType": "food", "lat": 48.8719, "lng": 2.3431, "short": "Salões monumentais Belle Époque/Art Nouveau com pratos típicos por € 10–16.", "about": "Os Bouillons são restaurantes históricos parisienses onde se come Boeuf Bourguignon, Confit de Canard, Escargots, Sopa de Cebola Gratinada e Profiteroles em ambientes lindíssimos e preços justos.", "ticket": "Entrada + Prato + Sobremesa: ~€ 18 a € 25/pessoa.", "hours": "Almoço das 11h30 às 15h00.", "tip": "Podemos reservar o Bouillon Julien (Art Nouveau) ou Bouillon Pigalle, ou ir às 11h45 no Bouillon Chartier (1896, sem reserva)."},
+          {"num": 3, "time": "14h30 – 15h45", "name": "Galerie Vivienne & Ópera Garnier", "tag": "Charme • Walk-in", "tagType": "free", "lat": 48.8668, "lng": 2.3396, "short": "Passagens cobertas do século XIX iluminadas rumo ao Palais Garnier.", "about": "Caminhada abrigada do frio pelas galerias históricas cobertas por claraboias de vidro (Passage des Panoramas e Galerie Vivienne), todas enfeitadas com guirlandas de Natal.", "ticket": "Gratuito.", "hours": "08h30 às 20h00.", "tip": "Caminho natural a pé entre os Grands Boulevards e a Ópera."},
+          {"num": 4, "time": "16h00 – 18h30", "name": "Galeries Lafayette Haussmann (Vitrines + Terraço)", "tag": "Natal • Terraço Grátis", "tagType": "free", "lat": 48.8738, "lng": 2.332, "short": "Árvore gigante suspensa sob a cúpula centenária e terraço panorâmico.", "about": "O grande espetáculo de Natal das lojas de departamento de Paris: vitrines mecânicas animadas na rua, a árvore gigante pendurada sob a cúpula Art Nouveau e vista gratuita da Torre Eiffel no 8º andar.", "ticket": "Entrada e acesso ao terraço panorâmico gratuitos.", "hours": "10h00 às 20h30.", "tip": "Subam no terraço por volta das 16h40 para ver o pôr do sol (16h55) com a Torre Eiffel acendendo."}
+        ]
+      },
+      {
+        "id": "d20",
+        "date": "20/12",
+        "weekday": "Domingo",
+        "phase": "fr",
+        "phaseLabel": "🇫🇷 Paris & Disneyland",
+        "city": "Paris",
+        "base": "ibis Paris Bastille Opéra",
+        "sunset": "16h55",
+        "title": "Île de la Cité, Quartier Latin & Cruzeiro Iluminado no Sena",
+        "logic": "Domingo perfeito no coração histórico de Paris: começamos na Île de la Cité (Sainte-Chapelle + Notre-Dame + feirinha da Square René Viviani), cruzamos a pé para o Quartier Latin e Saint-Germain-des-Prés e encerramos com o Cruzeiro no Sena ao anoitecer e a Torre Eiffel piscando no Trocadéro.",
+        "cluster": {"lat": 48.8535, "lng": 2.345, "radius": 1800, "color": "#16589e"},
+        "travelMode": "walking",
+        "places": [
+          {"num": 1, "time": "09h30 – 12h30", "name": "Sainte-Chapelle & Catedral de Notre-Dame", "tag": "Reservar • Agendar 48h", "tagType": "reserve", "lat": 48.853, "lng": 2.3499, "short": "Os vitrais góticos mais impressionantes do mundo + Notre-Dame revitalizada.", "about": "Na Île de la Cité, visitamos os vitrais de 15 metros da Sainte-Chapelle e a Catedral de Notre-Dame, além da charmosa feirinha artesanal de Natal na Square René Viviani (com vista lateral da catedral).", "ticket": "Sainte-Chapelle: € 13/pessoa (reservar antes em sainte-chapelle.fr). Notre-Dame: gratuita (agendar online 48h antes, dia 18/12).", "hours": "09h00 às 17h00.", "tip": "Passem na livraria Shakespeare and Company logo ao atravessar a ponte para a margem esquerda."},
+          {"num": 2, "time": "13h00 – 17h00", "name": "Quartier Latin, Le Procope & Saint-Germain-des-Prés", "tag": "Bistrô 1686 • [A DEFINIR]", "tagType": "food", "lat": 48.853, "lng": 2.3388, "short": "O restaurante mais antigo de Paris (1686), Jardin du Luxembourg e Café de Flore.", "about": "Almoço histórico no Le Procope (frequentado por Voltaire e Napoleão), passeio pelo Jardin du Luxembourg e parada nos cafés literários Café de Flore / Les Deux Magots ao lado da feirinha de Natal de Saint-Germain.", "ticket": "Le Procope: ~€ 35–48/pessoa (reservar online em procope.com).", "hours": "12h00 às 00h00.", "tip": "Se preferirem deixar o bistrô para segunda-feira ao lado do Louvre (Bistrot Victoires), aqui dá para comer crepe bretão + cidra."},
+          {"num": 3, "time": "18h00 – 20h15", "name": "Cruzeiro no Rio Sena & Trocadéro (Torre Piscando)", "tag": "Cruzeiro • [A DEFINIR]", "tagType": "reserve", "lat": 48.8606, "lng": 2.293, "short": "Passeio de barco de 1h sob as pontes iluminadas + show de luzes da Torre.", "about": "Navegação de 1 hora passando pelo Louvre, Notre-Dame, Musée d'Orsay e Torre Eiffel iluminados. Ao desembarcar, subida até a esplanada do Trocadéro para ver a Torre piscar por 5 minutos às 19h00 ou 20h00.", "ticket": "Cruzeiro 1h: ~€ 15–17/pessoa (comprar online antecipado para pular fila da bilheteria).", "hours": "Saídas a cada 30–45 min à noite.", "tip": "Bateaux Parisiens (sai aos pés da Torre Eiffel) deixa vocês colados no Trocadéro logo no desembarque."}
+        ]
+      },
+      {
+        "id": "d21",
+        "date": "21/12",
+        "weekday": "Segunda-feira",
+        "phase": "fr",
+        "phaseLabel": "🇫🇷 Paris & Disneyland",
+        "city": "Paris",
+        "base": "ibis Paris Bastille Opéra",
+        "sunset": "16h56",
+        "title": "Museu do Louvre (1º Horário), Palais-Royal & Torre Eiffel",
+        "logic": "Às segundas-feiras Versalhes fecha, mas o Museu do Louvre abre normalmente. Entramos às 09h00 pelo acesso subterrâneo do Carrousel du Louvre para pular a fila externa da Pirâmide, almoçamos no Palais-Royal e fechamos Paris com a iluminação de luxo da Place Vendôme e a Torre Eiffel.",
+        "cluster": {"lat": 48.8615, "lng": 2.32, "radius": 2400, "color": "#16589e"},
+        "travelMode": "walking",
+        "places": [
+          {"num": 1, "time": "09h00 – 13h00", "name": "Museu do Louvre (Entrada Carrousel)", "tag": "Reserva Obrigatória", "tagType": "reserve", "lat": 48.8606, "lng": 2.3376, "short": "Mona Lisa, Vitória de Samotrácia, Vênus de Milo e Apartamentos de Napoleão III.", "about": "O maior museu de arte do mundo. Foco otimizado de 3h30 a 4h nas alas Denon e Sully para ver as grandes obras-primas sem esgotar as energias antes da road trip.", "ticket": "€ 22/pessoa. Reserva obrigatória com hora marcada em ticketlouvre.fr.", "hours": "Segunda-feira das 09h00 às 18h00.", "tip": "Dica de ouro: entrem pelo acesso subterrâneo do Carrousel du Louvre (99 Rue de Rivoli / estação Palais Royal) — fila muito menor que a da Pirâmide!"},
+          {"num": 2, "time": "13h15 – 16h30", "name": "Jardin du Palais-Royal, Bistrot Victoires & Place Vendôme", "tag": "Comida Típica • [A DEFINIR]", "tagType": "food", "lat": 48.8655, "lng": 2.3376, "short": "Colunas de Buren, confit de canard clássico e as decorações da Place Vendôme.", "about": "Ao lado do Louvre, o Palais-Royal guarda o pátio das famosas colunas listradas de Buren. Para o almoço, o tradicional Bistrot Victoires serve o melhor confit de canard com batatas sarladaises da região, seguido pelas luzes da Rue Saint-Honoré e Place Vendôme.", "ticket": "Almoço no Bistrot Victoires: ~€ 18–24/pessoa.", "hours": "12h00 às 23h00.", "tip": "Deixem as malas já pré-organizadas à noite para a retirada do SUV às 08h30 na Gare de Lyon."},
+          {"num": 3, "time": "17h30 – 20h30", "name": "Torre Eiffel & Jantar na Rue Cler", "tag": "Reservar se Subir", "tagType": "reserve", "lat": 48.8584, "lng": 2.2945, "short": "Subida noturna opcional na Dama de Ferro e bistrôs locais na Rue Cler.", "about": "Última noite em Paris aos pés da Torre Eiffel iluminada, com caminhada pela charmosa rua exclusiva de pedestres Rue Cler (queijos, vinhos e bistrôs).", "ticket": "Elevador até o 2º andar: € 22,60 | Topo: € 35,30 (toureiffel.paris).", "hours": "09h30 às 23h45.", "tip": "Se forem subir, comprem o ingresso online com antecedência — esgota rápido para a semana do Natal."}
+        ]
+      },
+      {
+        "id": "d22",
+        "date": "22/12",
+        "weekday": "Terça-feira",
+        "phase": "road",
+        "phaseLabel": "🚗 Road Trip: Alsácia & Alpes",
+        "city": "Paris ➔ Estrasburgo",
+        "base": "Hotel em Estrasburgo (Reservado)",
+        "sunset": "16h38",
+        "title": "Início da Road Trip & Capital do Natal na Europa",
+        "logic": "Retiramos o SUV na Alamo da Gare de Lyon às 08h30 e seguimos direto pela autoestrada A4 até Estrasburgo (~4h45). Como dormiremos na própria Estrasburgo, temos toda a tarde e noite livres para percorrer os mercados de Natal abertos até 21h00 e jantar em uma Winstub tradicional sem precisar dirigir depois.",
+        "cluster": {"lat": 48.5818, "lng": 7.7509, "radius": 1400, "color": "#d97706"},
+        "travelMode": "driving",
+        "places": [
+          {"num": 1, "time": "08h30 – 13h30", "name": "Gare de Lyon (Alamo SUV) ➔ Estrasburgo", "tag": "Carro Já Reservado", "tagType": "info", "lat": 48.8443, "lng": 2.3744, "short": "Retirada do SUV (C6 Carbon MasterSeguro) + ~490 km pela A4.", "about": "No balcão da Alamo, apresentem passaporte, CNH e PID do seu sogro + cartão C6 Carbon (recusando seguros extras). Na entrada de Estrasburgo, chequem se os pneus têm o símbolo 3PMSF; se não tiverem, comprem 1 par de meias de neve (~€ 35) no Carrefour/E.Leclerc para cumprir a Lei Montagne.", "ticket": "Pedágios A4: ~€ 38 no trecho. Estacionamento no hotel.", "hours": "Retirada às 08h30.", "tip": "Deixem o carro no hotel em Estrasburgo: o centro histórico (Grande Île) fica fechado a carros durante o Mercado de Natal."},
+          {"num": 2, "time": "14h30 – 19h45", "name": "Estrasburgo: Catedral, Place Kléber & La Petite France", "tag": "Capital do Natal", "tagType": "free", "lat": 48.5818, "lng": 7.7509, "short": "Christkindelsmärik (1570), show do Grand Sapin e canais enxaimel.", "about": "O mercado de Natal mais antigo da França espalha mais de 300 chalés pela Grande Île: Catedral gótica, Place Broglie, Place Kléber (onde a árvore gigante de 30m faz show musical a cada hora cheia das 16h às 21h) e os canais iluminados de La Petite France.", "ticket": "Gratuito. Vin Chaud Blanc (vinho quente branco alsaciano): ~€ 4,50.", "hours": "Mercados abertos das 11h30 às 21h00.", "tip": "Não percam o despertar luminoso e musical do Grand Sapin na Place Kléber às 17h00, 18h00 ou 19h00!"},
+          {"num": 3, "time": "20h00 – 22h00", "name": "Jantar Típico Alsaciano em Winstub", "tag": "Reservar • [A DEFINIR]", "tagType": "reserve", "lat": 48.5825, "lng": 7.7495, "short": "Choucroute garnie, baeckeoffe e tarte flambée em taverna histórica.", "about": "As Winstubs são tavernas acolhedoras de madeira típicas da Alsácia. Na semana do Natal, esgotam com semanas de antecedência.", "ticket": "Jantar típico com vinho Riesling: ~€ 30–45/pessoa.", "hours": "Jantar às 20h00.", "tip": "Opções para escolhermos e reservarmos agora: Winstub Chez Yvonne, Le Clou ou Maison Kammerzell (de 1427, colada na Catedral)."}
+        ]
+      },
+      {
+        "id": "d23",
+        "date": "23/12",
+        "weekday": "Quarta-feira",
+        "phase": "road",
+        "phaseLabel": "🚗 Road Trip: Alsácia & Alpes",
+        "city": "Rota dos Vinhos ➔ Mulhouse",
+        "base": "Hotel em Mulhouse (Reservado)",
+        "sunset": "16h39",
+        "title": "Riquewihr, Colmar & Último Dia do Mercado de Eguisheim",
+        "logic": "Descemos de norte a sul pela Rota dos Vinhos da Alsácia em sequência linear sem voltar atrás: Riquewihr pela manhã ➔ Colmar no almoço e tarde (6 mercados) ➔ Eguisheim às 16h45 (porque 23/12 é o ÚLTIMO dia em que o mercado de Eguisheim abre antes de fechar nos dias 24 a 26/12) ➔ pernoite em Mulhouse.",
+        "cluster": {"lat": 48.0794, "lng": 7.34, "radius": 4500, "color": "#d97706"},
+        "travelMode": "driving",
+        "places": [
+          {"num": 1, "time": "09h30 – 11h00", "name": "Riquewihr (Vila Medieval dos Vinhos)", "tag": "Rota dos Vinhos", "tagType": "free", "lat": 48.1666, "lng": 7.2974, "short": "Casas enxaimel coloridas intactas entre os vinhedos da Alsácia.", "about": "Considerada uma das vilas mais bonitas da França, parece cenário de filme (inspirou A Bela e a Fera) com suas muralhas medievais, fontes e adegas de Riesling e Gewürztraminer.", "ticket": "Entrada gratuita na vila (estacionamento externo pago ~€ 3).", "hours": "Lojas e adegas abertas a partir das 09h30.", "tip": "Aproveitem para comprar aqui uma garrafa de Crémant d'Alsace ou Riesling Grand Cru + biscoitos Bredele para levar de presente na ceia em Albertville!"},
+          {"num": 2, "time": "11h30 – 16h30", "name": "Colmar (La Petite Venise & 6 Mercados de Natal)", "tag": "Imperdível • Natal", "tagType": "free", "lat": 48.0794, "lng": 7.3585, "short": "Canais refletindo casas iluminadas, Koïfhus e tarte flambée no forno a lenha.", "about": "Colmar reúne 6 mercados temáticos ligados por ruelas iluminadas (Place des Dominicains, Place de l'Ancienne Douane, Koïfhus e o bairro dos canais La Petite Venise).", "ticket": "Gratuito.", "hours": "Mercados abertos das 10h00 às 19h00.", "tip": "Almocem tarte flambée (flammekueche) artesanal — a La Soï é referência absoluta na cidade."},
+          {"num": 3, "time": "16h45 – 19h00", "name": "Eguisheim (Último Dia do Mercado de Natal!)", "tag": "Data Crítica • 23/12", "tagType": "reserve", "lat": 48.0425, "lng": 7.3061, "short": "Vila circular de conto de fadas no último dia de abertura do mercado.", "about": "A apenas 15 minutos de Colmar, Eguisheim tem ruas concêntricas em torno de um castelo medieval. Hoje (23/12) é o último dia em que seu mercado de Natal abre antes de fechar de 24 a 26/12.", "ticket": "Gratuito.", "hours": "Aberto até 19h00.", "tip": "Chegar às 16h45 pega exatamente o acendimento das luzes ao anoitecer."},
+          {"num": 4, "time": "19h30 – 20h00", "name": "Mulhouse (Check-in Hotel Reservado)", "tag": "Base Pernoite", "tagType": "info", "lat": 47.7495, "lng": 7.3396, "short": "A 30 min de Eguisheim, já posicionados na saída para Annecy no dia 24.", "about": "Dormir em Mulhouse deixa vocês na porta da autoestrada A36 para iniciar a descida rumo aos Alpes na manhã de Véspera de Natal.", "ticket": "Hotel já reservado.", "hours": "Check-in noturno.", "tip": "Abasteçam o tanque antes de sair na manhã seguinte para ganhar tempo."}
+        ]
+      },
+      {
+        "id": "d24",
+        "date": "24/12",
+        "weekday": "Quinta-feira",
+        "phase": "road",
+        "phaseLabel": "🚗 Road Trip: Alsácia & Alpes",
+        "city": "Mulhouse ➔ Annecy ➔ Albertville",
+        "base": "Albertville (Casa do Marcinho)",
+        "sunset": "16h54",
+        "title": "Annecy (5h Livres) & Ceia de Natal em Albertville",
+        "logic": "Saímos de Mulhouse às 08h30 pela rota 100% francesa (economizando € 45 da vinheta suíça e evitando trânsito em Genebra), chegamos a Annecy às 12h00 já com almoço de fondue reservado às 12h30 para não perder tempo na véspera de Natal, curtimos os canais até o acendimento das luzes às 16h45 e seguimos 45 min até Albertville para a Ceia de Natal!",
+        "cluster": {"lat": 45.8992, "lng": 6.1294, "radius": 1800, "color": "#d97706"},
+        "travelMode": "driving",
+        "places": [
+          {"num": 1, "time": "12h00 – 13h45", "name": "Annecy — Almoço de Fondue/Raclette (Véspera de Natal)", "tag": "Reservar • [A DEFINIR]", "tagType": "reserve", "lat": 45.8986, "lng": 6.1258, "short": "Almoço saboiano reservado às 12h30 para aproveitar ao máximo as 5h na cidade.", "about": "Como a ceia será à noite em Albertville, o almoço em Annecy é o momento ideal para provar Fondue Savoyarde, Raclette ou Tartiflette no centro histórico.", "ticket": "Fondue/Raclette: ~€ 24–32/pessoa.", "hours": "Reserva às 12h30 (estacionar no Parking Hôtel de Ville ou Bonlieu).", "tip": "Opções para escolhermos e reservarmos: Le Fréti (o templo do queijo em Annecy) ou L'Étage."},
+          {"num": 2, "time": "13h45 – 17h00", "name": "Annecy: Palais de l'Île, Pont des Amours & Noël des Alpes", "tag": "A Veneza dos Alpes", "tagType": "free", "lat": 45.8992, "lng": 6.1294, "short": "Canais cristalinos, lago cercado por montanhas nevadas e chalés de Natal.", "about": "Caminhada pela Vieille Ville, foto clássica no Palais de l'Île (antiga prisão em forma de navio no meio do canal), Jardins de l'Europe, travessia da Pont des Amours sobre o Lago de Annecy e feira de Natal.", "ticket": "Gratuito.", "hours": "Chalés de Natal abertos das 11h00 às 19h00 no dia 24/12; luzes acendem às 16h45.", "tip": "Às 17h00 saímos direto para Albertville (apenas 45 km / 45 min pela estrada D1508/N212)."},
+          {"num": 3, "time": "17h45 – Noite", "name": "Albertville (Ceia de Natal na Casa do Marcinho)", "tag": "Natal • Hospedagem", "tagType": "info", "lat": 45.6755, "lng": 6.3927, "short": "Chegada tranquila para banho, troca de roupa e Ceia de Natal em família.", "about": "Base estratégica no coração dos Alpes franceses (sede dos Jogos Olímpicos de Inverno de 1992), posicionada exatamente no meio do caminho entre Annecy, Chamonix e Courchevel.", "ticket": "Hospedagem com anfitrião.", "hours": "Noite de Natal.", "tip": "Entreguem aqui o vinho/Crémant da Alsácia comprado em Riquewihr!"}
+        ]
+      },
+      {
+        "id": "d25",
+        "date": "25/12",
+        "weekday": "Sexta-feira",
+        "phase": "road",
+        "phaseLabel": "🚗 Road Trip: Alsácia & Alpes",
+        "city": "Chamonix-Mont-Blanc",
+        "base": "Albertville (Casa do Marcinho)",
+        "sunset": "16h54",
+        "title": "Dia de Natal no Topo da Europa: Chamonix & Aiguille du Midi",
+        "logic": "Saindo de Albertville (~1h15), passamos o dia de Natal em Chamonix-Mont-Blanc acompanhados pelo Marcinho. O teleférico Aiguille du Midi funciona normalmente no dia 25/12 (08h10 às 16h30) e leva vocês a 3.842 metros de altitude cara a cara com o Mont-Blanc.",
+        "cluster": {"lat": 45.9237, "lng": 6.8694, "radius": 2200, "color": "#d97706"},
+        "travelMode": "driving",
+        "places": [
+          {"num": 1, "time": "09h15 – 13h00", "name": "Teleférico Aiguille du Midi (3.842m)", "tag": "Reservar • Checar Clima", "tagType": "reserve", "lat": 45.8792, "lng": 6.8874, "short": "Um dos teleféricos mais altos e vertiginosos do mundo frente ao Mont-Blanc.", "about": "Em 20 minutos, vence mais de 2.800 metros de desnível até terraços panorâmicos de neve eterna com vista dos Alpes franceses, suíços e italianos, incluindo a caixa de vidro Step into the Void.", "ticket": "Ida e volta: ~€ 78/pessoa (montblancnaturalresort.com).", "hours": "Aberto no dia 25/12 das 08h10 às 16h30.", "tip": "Comprem online alguns dias antes assim que confirmarem com o Marcinho que o céu estará limpo no topo (sem nuvens fechadas). Levem óculos de sol e luvas impermeáveis!"},
+          {"num": 2, "time": "13h15 – 16h30", "name": "Centro Alpino de Chamonix (Vila de Natal)", "tag": "Natal nos Alpes", "tagType": "free", "lat": 45.9237, "lng": 6.8694, "short": "Chalés de madeira, lojas de montanha e vista das geleiras direto da rua.", "about": "Caminhada pela Rue du Docteur Paccard e Place Balmat, totalmente decoradas para o Natal e cercadas pelos picos nevados do maciço do Mont-Blanc.", "ticket": "Gratuito.", "hours": "Vila animada no feriado de Natal.", "tip": "Retorno tranquilo de 1h15 para dormir em Albertville."}
+        ]
+      },
+      {
+        "id": "d26",
+        "date": "26/12",
+        "weekday": "Sábado",
+        "phase": "road",
+        "phaseLabel": "🚗 Road Trip: Alsácia & Alpes",
+        "city": "Courchevel ➔ Chambéry",
+        "base": "Chambéry / Retorno Trem",
+        "sunset": "16h56",
+        "title": "Glamour na Neve em Courchevel 1850 & Devolução do SUV",
+        "logic": "Apenas 50 minutos separam Albertville de Courchevel 1850, a estação de esqui mais famosa e luxuosa dos Alpes (Les Trois Vallées), que estará no auge da movimentação de Natal. No fim da tarde descemos até a Gare de Chambéry (45 min) para devolver o SUV na Alamo.",
+        "cluster": {"lat": 45.4148, "lng": 6.6347, "radius": 2500, "color": "#d97706"},
+        "travelMode": "driving",
+        "places": [
+          {"num": 1, "time": "09h30 – 15h30", "name": "Courchevel 1850 (Les Trois Vallées)", "tag": "Estação de Esqui", "tagType": "free", "lat": 45.4148, "lng": 6.6347, "short": "Chalés de luxo na neve, pistas de esqui no centro e atmosfera alpina.", "about": "Mesmo para quem não esquia, passear pelo centro de Courchevel 1850 no dia 26/12 é uma experiência incrível: pistas chegam dentro da vila, esculturas gigantes na neve e cafés panorâmicos.", "ticket": "Acesso gratuito à vila (estacionamento coberto pago).", "hours": "Auge da temporada de inverno.", "tip": "Subam de carro devagar pela estrada bem sinalizada via Moûtiers."},
+          {"num": 2, "time": "16h30 – 18h00", "name": "Gare de Chambéry (Devolução SUV Alamo)", "tag": "Entrega do Carro", "tagType": "info", "lat": 45.5713, "lng": 5.9195, "short": "Devolução do SUV conforme horário contratado na Alamo.", "about": "Entrega do carro com tanque cheio na estação de trem de Chambéry – Challes-les-Eaux (45 min de Albertville). Se o horário contratado for na manhã de domingo (27/12), vocês dormem em Chambéry e devolvem antes do trem.", "ticket": "Reabastecer antes de entregar.", "hours": "Conforme voucher Alamo.", "tip": "Tirem fotos/vídeo do carro na entrega para encerrar o contrato com tranquilidade."}
+        ]
+      },
+      {
+        "id": "d27",
+        "date": "27/12",
+        "weekday": "Domingo",
+        "phase": "end",
+        "phaseLabel": "🇮🇹 Retorno Turim & Voo",
+        "city": "Chambéry ➔ Turim",
+        "base": "Turim (Casa da Namorada)",
+        "sunset": "16h57",
+        "title": "Trem Alpino de Volta a Turim & Dias Livres",
+        "logic": "Em vez de ir até Milão e gastar com hotel, descemos direto no trem internacional (TGV INOUI ou Frecciarossa) na estação Torino Porta Susa (~2h50 cruzando os Alpes), ganhando mais dois dias tranquilos na nossa base gratuita em Turim.",
+        "cluster": {"lat": 45.0725, "lng": 7.6656, "radius": 1800, "color": "#9333ea"},
+        "travelMode": "transit",
+        "places": [
+          {"num": 1, "time": "Manhã / Tarde", "name": "Trem Direto Chambéry ➔ Torino Porta Susa", "tag": "Comprar Antes", "tagType": "reserve", "lat": 45.0725, "lng": 7.6656, "short": "Travessia ferroviária pelos Alpes (~2h50) direto para Turim.", "about": "Os trens de alta velocidade que ligam a França à Itália passam pelo túnel alpino e param diretamente em Torino Porta Susa.", "ticket": "Comprar antecipado em sncf-connect.com ou trenitalia.com (lota após o Natal).", "hours": "Conforme horário escolhido na compra.", "tip": "Descer em Porta Susa economiza tempo e dinheiro em relação a seguir até Milão."},
+          {"num": 2, "time": "27/12 e 28/12", "name": "Dois Dias Livres em Turim (Descanso & Compras)", "tag": "Base Gratuita", "tagType": "free", "lat": 45.068, "lng": 7.684, "short": "Tempo livre sem correria para repetir lugares favoritos e arrumar malas.", "about": "Dois dias inteiros em Turim para descansar da road trip, aproveitar liquidações de fim de ano na Via Roma, repetir o Bicerin e curtir a despedida da cidade.", "ticket": "Livre.", "hours": "Dia inteiro livre.", "tip": "Deixem tudo organizado na noite de 28/12 para o ônibus da manhã seguinte."}
+        ]
+      },
+      {
+        "id": "d29",
+        "date": "29/12",
+        "weekday": "Terça-feira",
+        "phase": "end",
+        "phaseLabel": "🇮🇹 Retorno Turim & Voo",
+        "city": "Turim ➔ Malpensa ➔ Brasil",
+        "base": "Voo de Volta (12h00)",
+        "sunset": "—",
+        "title": "Ônibus Direto para Malpensa & Voo de Retorno ao Brasil",
+        "logic": "Como o voo internacional sai de Milão Malpensa às 12h00, pegamos o ônibus direto (Arriva ou Flibco) na estação Torino Porta Susa às 06h45/07h00, que deixa vocês na porta do Terminal 1 às 09h00 (3h antes do voo) sem precisar fazer baldeação com malas.",
+        "cluster": {"lat": 45.6301, "lng": 8.7255, "radius": 2000, "color": "#9333ea"},
+        "travelMode": "transit",
+        "places": [
+          {"num": 1, "time": "06h45 – 09h00", "name": "Ônibus Direto Torino Porta Susa ➔ Malpensa T1", "tag": "Comprar Antes", "tagType": "reserve", "lat": 45.6301, "lng": 8.7255, "short": "Trajeto direto (~2h00) até o Terminal 1 de Milão Malpensa.", "about": "Operado pela Arriva Italia e Flibco, sai do centro de Turim e para diretamente no andar de embarque do Terminal 1 de Malpensa.", "ticket": "~€ 22/pessoa. Comprar antes em arriva.it ou flibco.com para garantir assento no horário.", "hours": "Saída ~06h45/07h00 ➔ Chegada ~08h45/09h00.", "tip": "Muito mais prático que trem porque não exige baldeação na estação Milano Centrale com as malas."},
+          {"num": 2, "time": "12h00", "name": "Embarque Internacional Milão Malpensa (MXP) ➔ Brasil", "tag": "Voo Confirmado", "tagType": "info", "lat": 45.6301, "lng": 8.7255, "short": "Check-in, Tax Free (se houver compras) e embarque de volta para casa!", "about": "Chegando às 09h00 no Terminal 1, vocês têm 3 horas completas para despacho, validação de Tax Free na alfândega e controle de passaporte com total calma.", "ticket": "Passagem já emitida.", "hours": "Decolagem às 12h00.", "tip": "Fim de uma viagem inesquecível de Natal pela Europa!"}
+        ]
+      }
+    ];
+
+    const CHECKLIST = [
+      {"cat": "🚨 Alertas de Data e Hora (Colocar Alarme no Celular)", "items": [
+        {"id": "c_sky", "title": "Sky Garden Londres — Mirante Gratuito (para Terça, 15/12 às 15h00)", "note": "Lote abre SEGUNDA 23/11 às 07h00 (Brasília) em skygarden.london"},
+        {"id": "c_hor", "title": "Horizon 22 Londres — Plano B de Mirante (para Terça, 15/12)", "note": "Lote abre SEGUNDA 30/11 às 07h00 (Brasília) em horizon22.co.uk"},
+        {"id": "c_nd", "title": "Catedral de Notre-Dame Paris (para Domingo, 20/12 manhã)", "note": "Agendamento gratuito abre 48h antes: SEXTA 18/12 no site/app oficial"}
+      ]},
+      {"cat": "🇮🇹 Fase 1: Itália — Milão & Turim (09 a 13/12)", "items": [
+        {"id": "c_duomo", "title": "Terraços do Duomo de Milão (Quarta, 09/12 ~12h00)", "note": "Comprar com hora marcada em duomomilano.it"},
+        {"id": "c_trem_it", "title": "Trem Rápido Milão ➔ Torino Porta Susa (Quarta, 09/12 ~21h00)", "note": "Tarifa promocional antecipada na Trenitalia ou Italo"},
+        {"id": "c_egizio", "title": "Museo Egizio em Turim (Sexta, 11/12 às 09h00)", "note": "Reserva obrigatória com hora marcada em museoegizio.it"},
+        {"id": "c_mole", "title": "Mole Antonelliana + Elevador Panorâmico (Sexta, 11/12 ~15h45)", "note": "Comprar antecipado em museocinema.it"},
+        {"id": "c_turim_rest", "title": "[A DEFINIR] Jantar Piemontês no Quadrilatero Romano (10 ou 11/12)", "note": "Sugestão: Ristorante Tre Galline"}
+      ]},
+      {"cat": "🇬🇧 Fase 2: Londres (13 a 17/12)", "items": [
+        {"id": "c_stan", "title": "Trem Stansted Express (Domingo, 13/12 ~14h45)", "note": "Comprar tarifa Advance em stanstedexpress.com (~metade do preço)"},
+        {"id": "c_tower", "title": "Tower of London (Terça, 15/12 às 09h00)", "note": "Comprar antes em hrp.org.uk se forem entrar para ver as Joias da Coroa"},
+        {"id": "c_soho", "title": "[A DEFINIR] Jantar Reservado no Soho (Segunda, 14/12 às 19h30)", "note": "Escolher: Dishoom (17h30), Flat Iron Soho, Blacklock ou Hawksmoor"}
+      ]},
+      {"cat": "🇫🇷 Fase 3: Paris & Disneyland (17 a 21/12)", "items": [
+        {"id": "c_louvre", "title": "Museu do Louvre (Segunda, 21/12 às 09h00)", "note": "Reserva obrigatória em ticketlouvre.fr (entrar pelo Carrousel)"},
+        {"id": "c_sc", "title": "Sainte-Chapelle (Domingo, 20/12 manhã)", "note": "Reserva obrigatória em sainte-chapelle.fr"},
+        {"id": "c_eiffel", "title": "Torre Eiffel (Segunda, 21/12 fim de tarde — se forem subir)", "note": "Comprar online em toureiffel.paris"},
+        {"id": "c_sena", "title": "[A DEFINIR] Cruzeiro no Rio Sena (Domingo, 20/12 às 18h00)", "note": "Escolher: Bateaux Parisiens (Torre Eiffel) ou Vedettes du Pont Neuf"},
+        {"id": "c_bouillon", "title": "[A DEFINIR] Almoço em Bouillon Histórico (Sábado, 19/12 às 12h15)", "note": "Escolher: Bouillon Julien (reserva), Pigalle (reserva) ou Chartier (11h45)"},
+        {"id": "c_bistro", "title": "[A DEFINIR] Bistrô Clássico Francês (Domingo 20/12 ou Segunda 21/12)", "note": "Escolher: Le Procope (1686) ou Bistrot Victoires"}
+      ]},
+      {"cat": "🚗 Fase 4 & 5: Road Trip & Retorno (22 a 29/12)", "items": [
+        {"id": "c_pid", "title": "PID do Sogro + Bilhete MasterSeguro C6 Carbon", "note": "Emitir antes de viajar para apresentar no balcão da Alamo em 22/12"},
+        {"id": "c_stras", "title": "[A DEFINIR] Jantar Winstub em Estrasburgo (Terça, 22/12 às 20h00)", "note": "Escolher: Winstub Chez Yvonne, Le Clou ou Maison Kammerzell"},
+        {"id": "c_ann", "title": "[A DEFINIR] Almoço Fondue/Raclette em Annecy (Quinta, 24/12 às 12h30)", "note": "Escolher: Le Fréti ou L'Étage"},
+        {"id": "c_midi", "title": "Teleférico Aiguille du Midi em Chamonix (Sexta, 25/12 manhã)", "note": "Reservar em montblancnaturalresort.com após checar clima com Marcinho"},
+        {"id": "c_trem_fr", "title": "Trem Direto Chambéry ➔ Torino Porta Susa (26 ou 27/12)", "note": "Comprar antecipado em sncf-connect.com ou trenitalia.com"},
+        {"id": "c_bus_mxp", "title": "Ônibus Direto Turim Porta Susa ➔ Malpensa T1 (Terça, 29/12 ~06h45)", "note": "Comprar antecipado em arriva.it ou flibco.com (voo às 12h00)"}
+      ]}
+    ];
+
+    let currentPhase = 'all';
+    let currentDayId = 'd09';
+    let modalDayIdx = 0;
+    let modalPlaceIdx = 0;
+
+    // Initialize Map with Google Maps tiles
+    const map = L.map('map', { zoomControl: true }).setView([45.4655, 9.1880], 13);
+    const tileLayers = {
+      m: L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Google Maps' }),
+      y: L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Google Satellite' }),
+      p: L.tileLayer('https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Google Terrain' })
+    };
+    let activeTile = tileLayers.m.addTo(map);
+    let markersLayer = L.layerGroup().addTo(map);
+
+    function setMapLayer(type) {
+      map.removeLayer(activeTile);
+      activeTile = tileLayers[type].addTo(map);
+    }
+
+    function filterPhase(phase) {
+      currentPhase = phase;
+      document.querySelectorAll('#phasePills .pill').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.phase === phase);
+      });
+      const filtered = phase === 'all' ? DAYS : DAYS.filter(d => d.phase === phase);
+      renderDayPills(filtered);
+      if (filtered.length > 0) {
+        openDay(filtered[0].id);
+      }
+    }
+
+    function renderDayPills(list) {
+      const container = document.getElementById('dayPills');
+      container.innerHTML = list.map(d => `
+        <button class="day-pill ${d.id === currentDayId ? 'active' : ''}" onclick="openDay('${d.id}')">
+          ${d.date} • ${d.city.split('➔')[0].trim()}
+        </button>
+      `).join('');
+    }
+
+    function openDay(dayId) {
+      markersLayer.clearLayers();
+      if (dayId === 'ALL') {
+        currentDayId = 'ALL';
+        document.querySelectorAll('.day-pill').forEach(b => b.classList.remove('active'));
+        document.getElementById('mapHeaderTitle').textContent = '🌍 Visão Geral da Viagem (09 a 29/12)';
+        const coords = [];
+        DAYS.forEach(d => {
+          const p = d.places[0];
+          if (p) {
+            coords.push([p.lat, p.lng]);
+            const marker = L.marker([p.lat, p.lng], {
+              icon: L.divIcon({ className: '', html: `<div class="custom-pin" style="width:auto;padding:0 7px;border-radius:12px;font-size:11px;">${d.date}</div>` })
+            }).addTo(markersLayer);
+            marker.bindPopup(`<b>${d.date} — ${d.city}</b><br>${d.title}<br><button onclick="openDay('${d.id}')" style="margin-top:6px;padding:4px 8px;background:#14213D;color:#fff;border:none;border-radius:6px;cursor:pointer;">Abrir este dia</button>`);
+          }
+        });
+        L.polyline(coords, { color: '#D4A373', weight: 3, dashArray: '6, 8' }).addTo(markersLayer);
+        map.fitBounds(L.latLngBounds(coords), { padding: [30, 30] });
+        document.getElementById('fullRouteBtn').href = 'https://www.google.com/maps/dir/Milan+Malpensa+Airport/Turin/London/Paris/Strasbourg/Colmar/Annecy/Chamonix/Courchevel/Turin';
+        return;
+      }
+
+      currentDayId = dayId;
+      const dayIndex = DAYS.findIndex(d => d.id === dayId);
+      const day = DAYS[dayIndex];
+      const filtered = currentPhase === 'all' ? DAYS : DAYS.filter(d => d.phase === currentPhase);
+      renderDayPills(filtered);
+
+      document.getElementById('mapHeaderTitle').textContent = `🗺️ ${day.date} — ${day.city}`;
+
+      // Render Itinerary Content
+      const container = document.getElementById('itineraryContent');
+      container.innerHTML = `
+        <div class="day-banner">
+          <div class="day-meta">
+            <span class="date-chip">${day.date}</span>
+            <span class="meta-pill">${day.weekday}</span>
+            <span class="meta-pill">🏨 ${day.base}</span>
+            <span class="meta-pill">🌅 Pôr do sol: ${day.sunset}</span>
+          </div>
+          <h2>${day.title}</h2>
+          <div class="day-city">${day.phaseLabel} • ${day.city}</div>
+        </div>
+
+        <div class="logic-card">
+          <div class="logic-title">🧭 Resumo &amp; Lógica Geográfica do Dia</div>
+          <div class="logic-text">${day.logic}</div>
+        </div>
+
+        <div class="places-list">
+          ${day.places.map((p, idx) => `
+            <div class="place-card" onclick="openPlaceModal(${dayIndex}, ${idx})">
+              <div class="place-top">
+                <div class="place-num-title">
+                  <div class="num-badge">${p.num}</div>
+                  <div>
+                    <div class="place-time">${p.time}</div>
+                    <div class="place-name">${p.name}</div>
+                  </div>
+                </div>
+                <span class="tag tag-${p.tagType}">${p.tag}</span>
+              </div>
+              <div class="place-short">${p.short}</div>
+              <div class="place-actions" onclick="event.stopPropagation()">
+                <button class="act-btn primary" onclick="openPlaceModal(${dayIndex}, ${idx})">ℹ️ Detalhes &amp; Horários</button>
+                <button class="act-btn" onclick="focusOnMap(${p.lat}, ${p.lng}, ${idx})">🎯 Ver no Mapa</button>
+                <a class="act-btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' ' + day.city.split('➔').pop().trim())}" target="_blank" rel="noopener">📍 Google Maps</a>
+                <a class="act-btn" href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}&travelmode=${day.travelMode}" target="_blank" rel="noopener">🧭 Rota de Onde Estou</a>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      // Render Map Cluster, Polyline & Markers
+      if (day.cluster) {
+        L.circle([day.cluster.lat, day.cluster.lng], {
+          radius: day.cluster.radius,
+          color: day.cluster.color,
+          fillColor: day.cluster.color,
+          fillOpacity: 0.08,
+          weight: 1.5,
+          dashArray: '4, 4'
+        }).addTo(markersLayer);
+      }
+
+      const latlngs = [];
+      const markers = [];
+      day.places.forEach((p, idx) => {
+        latlngs.push([p.lat, p.lng]);
+        const m = L.marker([p.lat, p.lng], {
+          icon: L.divIcon({ className: '', html: `<div class="custom-pin">${p.num}</div>`, iconSize: [30, 30], iconAnchor: [15, 15] })
+        }).addTo(markersLayer);
+
+        m.bindPopup(`
+          <div style="min-width:210px;font-family:'Plus Jakarta Sans',sans-serif;">
+            <div style="font-size:11px;font-weight:700;color:#1B4332;">${p.time}</div>
+            <div style="font-size:14px;font-weight:700;color:#14213D;margin:2px 0 4px;">${p.num}. ${p.name}</div>
+            <div style="font-size:12px;color:#4B5563;margin-bottom:8px;">${p.short}</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button onclick="openPlaceModal(${dayIndex}, ${idx})" style="background:#1B4332;color:#fff;border:none;padding:5px 8px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">ℹ️ Ver Detalhes</button>
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}&travelmode=${day.travelMode}" target="_blank" rel="noopener" style="background:#14213D;color:#fff;text-decoration:none;padding:5px 8px;border-radius:6px;font-size:11px;font-weight:600;">🧭 Rota GPS</a>
+            </div>
+          </div>
+        `);
+        markers.push(m);
+      });
+      window._currentMarkers = markers;
+
+      if (latlngs.length > 1) {
+        L.polyline(latlngs, { color: '#14213D', weight: 3.5, opacity: 0.75, dashArray: '6, 8' }).addTo(markersLayer);
+      }
+
+      if (latlngs.length === 1) {
+        map.setView(latlngs[0], 14);
+      } else if (latlngs.length > 1) {
+        map.fitBounds(L.latLngBounds(latlngs), { padding: [42, 42], maxZoom: 15 });
+      }
+
+      // Build multi-stop Google Maps URL for the day
+      if (latlngs.length >= 2) {
+        const origin = `${latlngs[0][0]},${latlngs[0][1]}`;
+        const dest = `${latlngs[latlngs.length-1][0]},${latlngs[latlngs.length-1][1]}`;
+        const waypoints = latlngs.slice(1, -1).map(c => `${c[0]},${c[1]}`).join('|');
+        let url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=${day.travelMode}`;
+        if (waypoints) url += `&waypoints=${encodeURIComponent(waypoints)}`;
+        document.getElementById('fullRouteBtn').href = url;
+      } else if (latlngs.length === 1) {
+        document.getElementById('fullRouteBtn').href = `https://www.google.com/maps/dir/?api=1&destination=${latlngs[0][0]},${latlngs[0][1]}&travelmode=${day.travelMode}`;
+      }
+    }
+
+    function focusOnMap(lat, lng, idx) {
+      map.setView([lat, lng], 16);
+      if (window._currentMarkers && window._currentMarkers[idx]) {
+        window._currentMarkers[idx].openPopup();
+      }
+      if (window.innerWidth <= 960) {
+        document.querySelector('.map-panel').scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    function openPlaceModal(dayIdx, placeIdx) {
+      modalDayIdx = dayIdx;
+      modalPlaceIdx = placeIdx;
+      const day = DAYS[dayIdx];
+      const p = day.places[placeIdx];
+      const cityClean = day.city.split('➔').pop().trim();
+
+      document.getElementById('placeModalBody').innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span class="date-chip">${day.date}</span>
+          <span style="font-size:12px;font-weight:700;color:var(--forest);">${p.time}</span>
+          <span class="tag tag-${p.tagType}">${p.tag}</span>
+        </div>
+        <h2 class="serif" style="font-size:24px;color:var(--navy);line-height:1.2;margin-bottom:12px;">${p.num}. ${p.name}</h2>
+
+        <div class="modal-section">
+          <h4>📖 Sobre o Lugar</h4>
+          <p>${p.about}</p>
+        </div>
+        <div class="modal-section">
+          <h4>🎟️ Entrada, Ingressos &amp; Custos</h4>
+          <p>${p.ticket}</p>
+        </div>
+        <div class="modal-section">
+          <h4>🕒 Horário &amp; Melhor Momento</h4>
+          <p>${p.hours}</p>
+        </div>
+        <div class="modal-section" style="background:#FFFDF5;border-color:#E5B94C;">
+          <h4 style="color:#92400E;">💡 Dica Especial para Nós</h4>
+          <p>${p.tip}</p>
+        </div>
+
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;">
+          <a class="act-btn primary" style="padding:9px 14px;font-size:13px;" href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}&travelmode=${day.travelMode}" target="_blank" rel="noopener">🧭 Criar Rota de Onde Estou (GPS)</a>
+          <a class="act-btn" style="padding:9px 14px;font-size:13px;" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' ' + cityClean)}" target="_blank" rel="noopener">📍 Ver Fotos &amp; Avaliações no Maps</a>
+        </div>
+
+        <div class="modal-nav">
+          <button class="act-btn" ${placeIdx === 0 ? 'disabled style="opacity:0.4"' : ''} onclick="openPlaceModal(${dayIdx}, ${placeIdx - 1})">← Parada Anterior</button>
+          <button class="act-btn" ${placeIdx === day.places.length - 1 ? 'disabled style="opacity:0.4"' : ''} onclick="openPlaceModal(${dayIdx}, ${placeIdx + 1})">Próxima Parada →</button>
+        </div>
+      `;
+      document.getElementById('placeModal').classList.add('open');
+    }
+
+    function closePlaceModal() {
+      document.getElementById('placeModal').classList.remove('open');
+    }
+
+    // Checklist persistence
+    function getSavedChecks() {
+      try { return JSON.parse(localStorage.getItem('europa2026_checks') || '{}'); } catch(e) { return {}; }
+    }
+    function toggleCheck(id) {
+      const saved = getSavedChecks();
+      saved[id] = !saved[id];
+      localStorage.setItem('europa2026_checks', JSON.stringify(saved));
+      renderChecklist();
+    }
+    function renderChecklist() {
+      const saved = getSavedChecks();
+      let pending = 0;
+      const html = CHECKLIST.map(g => `
+        <div class="check-group">
+          <h3>${g.cat}</h3>
+          ${g.items.map(it => {
+            const isDone = !!saved[it.id];
+            if (!isDone) pending++;
+            return `
+              <label class="check-item ${isDone ? 'done' : ''}">
+                <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleCheck('${it.id}')" />
+                <div>
+                  <div class="check-title">${it.title}</div>
+                  <div class="check-note">${it.note}</div>
+                </div>
+              </label>
+            `;
+          }).join('')}
+        </div>
+      `).join('');
+      document.getElementById('checklistBody').innerHTML = html;
+      document.getElementById('reserveCountBadge').textContent = pending;
+    }
+    function openChecklist() {
+      renderChecklist();
+      document.getElementById('checklistModal').classList.add('open');
+    }
+    function closeChecklist() {
+      document.getElementById('checklistModal').classList.remove('open');
+    }
+
+    // Boot
+    renderChecklist();
+    filterPhase('all');
+  </script>
+</body>
+</html>
